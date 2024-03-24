@@ -1,16 +1,16 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
-
 using Sodium.Exceptions;
+using static Interop.Libsodium;
 
 namespace Sodium
 {
     /// <summary> Create and Open SealedPublicKeyBoxes. </summary>
     public static class SealedPublicKeyBox
     {
-        public const int RecipientPublicKeyBytes = 32;
-        public const int RecipientSecretKeyBytes = 32;
-        private const int CryptoBoxSealbytes = 48;
+        public const int RecipientPublicKeyBytes = crypto_box_curve25519xsalsa20poly1305_PUBLICKEYBYTES;
+        public const int RecipientSecretKeyBytes = crypto_box_curve25519xsalsa20poly1305_SECRETKEYBYTES;
+        private const int CryptoBoxSealbytes = crypto_box_curve25519xsalsa20poly1305_PUBLICKEYBYTES + crypto_box_curve25519xsalsa20poly1305_MACBYTES;
 
         /// <summary> Creates a SealedPublicKeyBox</summary>
         /// <param name="message">The message.</param>
@@ -53,14 +53,13 @@ namespace Sodium
         /// <exception cref="CryptographicException"></exception>
         public static byte[] Create(byte[] message, byte[] recipientPublicKey)
         {
-            //validate the length of the recipient public key
             if (recipientPublicKey == null || recipientPublicKey.Length != RecipientPublicKeyBytes)
-                throw new KeyOutOfRangeException("recipientPublicKey",
-                    (recipientPublicKey == null) ? 0 : recipientPublicKey.Length,
-                    string.Format("recipientPublicKey must be {0} bytes in length.", RecipientPublicKeyBytes));
+                throw new KeyOutOfRangeException(nameof(recipientPublicKey), recipientPublicKey?.Length ?? 0, $"recipientPublicKey must be {RecipientPublicKeyBytes} bytes in length.");
 
             var buffer = new byte[message.Length + CryptoBoxSealbytes];
-            var ret = SodiumLibrary.crypto_box_seal(buffer, message, message.Length, recipientPublicKey);
+
+            SodiumCore.Initialize();
+            var ret = crypto_box_seal(buffer, message, (ulong)message.Length, recipientPublicKey);
 
             if (ret != 0)
                 throw new CryptographicException("Failed to create SealedBox");
@@ -111,21 +110,18 @@ namespace Sodium
         /// <exception cref="CryptographicException"></exception>
         public static byte[] Open(byte[] cipherText, byte[] recipientSecretKey, byte[] recipientPublicKey)
         {
-            //validate the length of the recipient secret key
             if (recipientSecretKey == null || recipientSecretKey.Length != RecipientSecretKeyBytes)
-                throw new KeyOutOfRangeException("recipientPublicKey",
-                    (recipientSecretKey == null) ? 0 : recipientSecretKey.Length,
-                    string.Format("recipientSecretKey must be {0} bytes in length.", RecipientSecretKeyBytes));
-
-            //validate the length of the recipient public key
+                throw new KeyOutOfRangeException(nameof(recipientPublicKey), recipientSecretKey?.Length ?? 0, $"recipientSecretKey must be {RecipientSecretKeyBytes} bytes in length.");
             if (recipientPublicKey == null || recipientPublicKey.Length != RecipientPublicKeyBytes)
-                throw new KeyOutOfRangeException("recipientPublicKey",
-                    (recipientPublicKey == null) ? 0 : recipientPublicKey.Length,
-                    string.Format("recipientPublicKey must be {0} bytes in length.", RecipientPublicKeyBytes));
+                throw new KeyOutOfRangeException(nameof(recipientPublicKey), recipientPublicKey?.Length ?? 0, $"recipientPublicKey must be {RecipientPublicKeyBytes} bytes in length.");
 
+            if (cipherText.Length < CryptoBoxSealbytes)
+                throw new CryptographicException("Failed to open SealedBox");
 
             var buffer = new byte[cipherText.Length - CryptoBoxSealbytes];
-            var ret = SodiumLibrary.crypto_box_seal_open(buffer, cipherText, cipherText.Length, recipientPublicKey,
+
+            SodiumCore.Initialize();
+            var ret = crypto_box_seal_open(buffer, cipherText, (ulong)cipherText.Length, recipientPublicKey,
                 recipientSecretKey);
 
             if (ret != 0)

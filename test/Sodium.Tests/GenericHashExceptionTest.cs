@@ -1,5 +1,5 @@
+using System;
 using NUnit.Framework;
-
 using Sodium;
 using Sodium.Exceptions;
 
@@ -47,9 +47,9 @@ namespace Tests
             const string SALT = "5b6b41ed9b343fe0";
             const string PERSONAL = "5126fb2a37400d2a";
             const string KEY = "1234567891123456";
-            Assert.Throws<System.ArgumentNullException>(() =>
+            Assert.Throws<ArgumentNullException>(() =>
             {
-                Utilities.BinaryToHex(GenericHash.HashSaltPersonal(null, KEY, SALT, PERSONAL));
+                Utilities.BinaryToHex(GenericHash.HashSaltPersonal(null!, KEY, SALT, PERSONAL));
             });
         }
 
@@ -58,9 +58,9 @@ namespace Tests
         {
             const string PERSONAL = "5126fb2a37400d2a";
             const string KEY = "1234567891123456";
-            Assert.Throws<System.ArgumentNullException>(() =>
+            Assert.Throws<ArgumentNullException>(() =>
             {
-                Utilities.BinaryToHex(GenericHash.HashSaltPersonal("message", KEY, null, PERSONAL));
+                Utilities.BinaryToHex(GenericHash.HashSaltPersonal("message", KEY, null!, PERSONAL));
             });
         }
 
@@ -69,9 +69,9 @@ namespace Tests
         {
             const string SALT = "5b6b41ed9b343fe0";
             const string KEY = "1234567891123456";
-            Assert.Throws<System.ArgumentNullException>(() =>
+            Assert.Throws<ArgumentNullException>(() =>
             {
-                Utilities.BinaryToHex(GenericHash.HashSaltPersonal("message", KEY, SALT, null));
+                Utilities.BinaryToHex(GenericHash.HashSaltPersonal("message", KEY, SALT, null!));
             });
         }
 

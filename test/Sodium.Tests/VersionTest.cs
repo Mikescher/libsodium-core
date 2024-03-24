@@ -1,5 +1,4 @@
-﻿using NUnit.Framework;
-
+using NUnit.Framework;
 using Sodium;
 
 namespace Tests
@@ -12,7 +11,7 @@ namespace Tests
         [Test]
         public void SodiumVersionStringTest()
         {
-            const string EXPECTED = "1.0.18";
+            const string EXPECTED = "1.0.19";
             var actual = SodiumCore.SodiumVersionString();
             Assert.AreEqual(EXPECTED, actual);
         }

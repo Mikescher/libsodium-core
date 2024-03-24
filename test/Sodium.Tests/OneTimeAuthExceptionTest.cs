@@ -1,7 +1,5 @@
 using System.Text;
-
 using NUnit.Framework;
-
 using Sodium;
 using Sodium.Exceptions;
 
@@ -16,7 +14,7 @@ namespace Tests
         {
             Assert.Throws<KeyOutOfRangeException>(() =>
             {
-                OneTimeAuth.Sign(Encoding.UTF8.GetBytes("Adam Caudill"), null);
+                OneTimeAuth.Sign(Encoding.UTF8.GetBytes("Adam Caudill"), null!);
             });
         }
 

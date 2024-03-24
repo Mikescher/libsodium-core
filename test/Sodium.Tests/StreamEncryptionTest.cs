@@ -1,7 +1,5 @@
-﻿using System.Text;
-
+using System.Text;
 using NUnit.Framework;
-
 using Sodium;
 
 namespace Tests
@@ -17,21 +15,28 @@ namespace Tests
             Assert.AreEqual(32, StreamEncryption.GenerateKey().Length);
         }
 
-        /// <summary>Verify that the length of the returned key is correct.</summary>
+        /// <summary>Verify that the length of the returned nonce is correct.</summary>
         [Test]
         public void TestGenerateNonce()
         {
             Assert.AreEqual(24, StreamEncryption.GenerateNonce().Length);
         }
 
-        /// <summary>Verify that the length of the returned key is correct.</summary>
+        /// <summary>Verify that the length of the returned nonce is correct.</summary>
         [Test]
         public void TestGenerateNonceChaCha20()
         {
             Assert.AreEqual(8, StreamEncryption.GenerateNonceChaCha20().Length);
         }
 
-        /// <summary>Verify that the length of the returned key is correct.</summary>
+        /// <summary>Verify that the length of the returned nonce is correct.</summary>
+        [Test]
+        public void TestGenerateNonceChaCha20Ietf()
+        {
+            Assert.AreEqual(12, StreamEncryption.GenerateNonceChaCha20Ietf().Length);
+        }
+
+        /// <summary>Verify that the length of the returned nonce is correct.</summary>
         [Test]
         public void TestGenerateNonceXChaCha20()
         {

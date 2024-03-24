@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-
 using NUnit.Framework;
-
 using Sodium;
 
 namespace Tests
@@ -15,8 +13,8 @@ namespace Tests
         /// </summary>
         private class HashTestObject
         {
-            public string Password { get; set; }
-            public string Salt { get; set; }
+            public string Password { get; set; } = string.Empty;
+            public string Salt { get; set; } = string.Empty;
             public long OpsLimit { get; set; }
             public int MemLimit { get; set; }
             public long OutputLength { get; set; }
@@ -168,7 +166,8 @@ namespace Tests
 
             var hash = PasswordHash.ArgonHashString(PASSWORD, OPS_LIMIT, MEM_LIMIT);
 
-            Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash, PASSWORD));
+            Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash.TrimEnd('\0'), PASSWORD));
+            Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash + "\0", PASSWORD));
         }
 
         [Test]
@@ -177,7 +176,8 @@ namespace Tests
             const string PASSWORD = "gkahjfkjewrykjKJHKJHKJbhuiqyr  8923fhsjfkajwehkjg";
             var hash = PasswordHash.ArgonHashString(PASSWORD);
 
-            Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash, PASSWORD));
+            Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash.TrimEnd('\0'), PASSWORD));
+            Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash + "\0", PASSWORD));
         }
 
         [Test]
@@ -186,7 +186,8 @@ namespace Tests
             const string PASSWORD = "gkahjfkjewrykjKJHKJHKJbhuiqyr  8923fhsjfkajwehkjg";
             var hash = PasswordHash.ArgonHashString(PASSWORD, PasswordHash.StrengthArgon.Moderate);
 
-            Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash, PASSWORD));
+            Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash.TrimEnd('\0'), PASSWORD));
+            Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash + "\0", PASSWORD));
         }
 
         [Test]
@@ -199,7 +200,8 @@ namespace Tests
                 //Could cause OutOfMemoryException
                 var hash = PasswordHash.ArgonHashString(PASSWORD, PasswordHash.StrengthArgon.Sensitive);
 
-                Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash, PASSWORD));
+                Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash.TrimEnd('\0'), PASSWORD));
+                Assert.IsTrue(PasswordHash.ArgonHashStringVerify(hash + "\0", PASSWORD));
             }
             catch (OutOfMemoryException e)
             {
@@ -325,7 +327,8 @@ namespace Tests
 
             foreach (var test in tests)
             {
-                Assert.IsTrue(PasswordHash.ArgonHashStringVerify(test[OUTPUT], test[PASS]));
+                Assert.IsTrue(PasswordHash.ArgonHashStringVerify(test[OUTPUT].TrimEnd('\0'), test[PASS]));
+                Assert.IsTrue(PasswordHash.ArgonHashStringVerify(test[OUTPUT] + "\0", test[PASS]));
             }
         }
 
@@ -340,7 +343,9 @@ namespace Tests
         [Test]
         public void TestGenerateSalt()
         {
+#pragma warning disable CS0618
             Assert.AreEqual(32, PasswordHash.GenerateSalt().Length);
+#pragma warning restore CS0618
         }
 
         [Test]
@@ -354,7 +359,8 @@ namespace Tests
 
             var hash = PasswordHash.ScryptHashString(PASSWORD, OPS_LIMIT, MEM_LIMIT);
 
-            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash, PASSWORD));
+            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash.TrimEnd('\0'), PASSWORD));
+            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash + "\0", PASSWORD));
         }
 
         [Test]
@@ -363,16 +369,20 @@ namespace Tests
             const string PASSWORD = "gkahjfkjewrykjKJHKJHKJbhuiqyr  8923fhsjfkajwehkjg";
             var hash = PasswordHash.ScryptHashString(PASSWORD);
 
-            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash, PASSWORD));
+            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash.TrimEnd('\0'), PASSWORD));
+            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash + "\0", PASSWORD));
         }
 
         [Test]
         public void ScryptHashStringModerateTest()
         {
             const string PASSWORD = "gkahjfkjewrykjKJHKJHKJbhuiqyr  8923fhsjfkajwehkjg";
+#pragma warning disable CS0618
             var hash = PasswordHash.ScryptHashString(PASSWORD, PasswordHash.Strength.Moderate);
+#pragma warning restore CS0618
 
-            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash, PASSWORD));
+            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash.TrimEnd('\0'), PASSWORD));
+            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash + "\0", PASSWORD));
         }
 
         [Test]
@@ -381,7 +391,8 @@ namespace Tests
             const string PASSWORD = "gkahjfkjewrykjKJHKJHKJbhuiqyr  8923fhsjfkajwehkjg";
             var hash = PasswordHash.ScryptHashString(PASSWORD, PasswordHash.Strength.Medium);
 
-            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash, PASSWORD));
+            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash.TrimEnd('\0'), PASSWORD));
+            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash + "\0", PASSWORD));
         }
 
         [Test]
@@ -390,7 +401,8 @@ namespace Tests
             const string PASSWORD = "gkahjfkjewrykjKJHKJHKJbhuiqyr  8923fhsjfkajwehkjg";
             var hash = PasswordHash.ScryptHashString(PASSWORD, PasswordHash.Strength.MediumSlow);
 
-            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash, PASSWORD));
+            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash.TrimEnd('\0'), PASSWORD));
+            Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash + "\0", PASSWORD));
         }
 
         [Test]
@@ -403,7 +415,8 @@ namespace Tests
                 //Could cause OutOfMemoryException
                 var hash = PasswordHash.ScryptHashString(PASSWORD, PasswordHash.Strength.Sensitive);
 
-                Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash, PASSWORD));
+                Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash.TrimEnd('\0'), PASSWORD));
+                Assert.IsTrue(PasswordHash.ScryptHashStringVerify(hash + "\0", PASSWORD));
             }
             catch (OutOfMemoryException e)
             {
@@ -658,7 +671,8 @@ namespace Tests
 
             foreach (var test in tests)
             {
-                Assert.IsTrue(PasswordHash.ScryptHashStringVerify(test[OUTPUT], test[PASS]));
+                Assert.IsTrue(PasswordHash.ScryptHashStringVerify(test[OUTPUT].TrimEnd('\0'), test[PASS]));
+                Assert.IsTrue(PasswordHash.ScryptHashStringVerify(test[OUTPUT] + "\0", test[PASS]));
             }
         }
 
@@ -669,12 +683,44 @@ namespace Tests
 
             string argonHash = PasswordHash.ArgonHashString(password, 4, 134_217_728);
 
-            Assert.IsTrue(PasswordHash.ArgonPasswordNeedsRehash(argonHash, 4, 107_374_182_4));
+            Assert.IsTrue(PasswordHash.ArgonPasswordNeedsRehash(argonHash.TrimEnd('\0'), 4, 107_374_182_4));
+            Assert.IsTrue(PasswordHash.ArgonPasswordNeedsRehash(argonHash + "\0", 4, 107_374_182_4));
 
-            Assert.IsFalse(PasswordHash.ArgonPasswordNeedsRehash(argonHash, 4, 134_217_728));
+            Assert.IsFalse(PasswordHash.ArgonPasswordNeedsRehash(argonHash.TrimEnd('\0'), 4, 134_217_728));
+            Assert.IsFalse(PasswordHash.ArgonPasswordNeedsRehash(argonHash + "\0", 4, 134_217_728));
 
-            Assert.IsTrue(PasswordHash.ArgonPasswordNeedsRehash(argonHash, PasswordHash.StrengthArgon.Sensitive));
+            Assert.IsTrue(PasswordHash.ArgonPasswordNeedsRehash(argonHash.TrimEnd('\0'), PasswordHash.StrengthArgon.Sensitive));
+            Assert.IsTrue(PasswordHash.ArgonPasswordNeedsRehash(argonHash + "\0", PasswordHash.StrengthArgon.Sensitive));
 
+        }
+
+        [Test]
+        public void ScryptPasswordNeedsRehashOnStringTest()
+        {
+            string hash = PasswordHash.ScryptHashString("password", PasswordHash.Strength.Medium);
+
+            Assert.IsTrue(PasswordHash.ScryptPasswordNeedsRehash(hash.TrimEnd('\0'), PasswordHash.Strength.Sensitive));
+            Assert.IsTrue(PasswordHash.ScryptPasswordNeedsRehash(hash + "\0", PasswordHash.Strength.Sensitive));
+
+            Assert.IsTrue(PasswordHash.ScryptPasswordNeedsRehash(hash.TrimEnd('\0'), PasswordHash.Strength.Interactive));
+            Assert.IsTrue(PasswordHash.ScryptPasswordNeedsRehash(hash + "\0", PasswordHash.Strength.Interactive));
+
+            Assert.IsFalse(PasswordHash.ScryptPasswordNeedsRehash(hash.TrimEnd('\0'), PasswordHash.Strength.Medium));
+            Assert.IsFalse(PasswordHash.ScryptPasswordNeedsRehash(hash + "\0", PasswordHash.Strength.Medium));
+        }
+
+        [Test]
+        public void ScryptPasswordNeedsRehashOnStringNullStringTest()
+        {
+            Assert.Throws<ArgumentNullException>(
+                () => PasswordHash.ScryptPasswordNeedsRehash((string)null!, PasswordHash.Strength.Sensitive));
+        }
+
+        [Test]
+        public void ScryptPasswordNeedsRehashOnStringBadStringTest()
+        {
+            Assert.Throws<Sodium.Exceptions.InvalidPasswordStringException>(
+                () => PasswordHash.ScryptPasswordNeedsRehash("nope", PasswordHash.Strength.Sensitive));
         }
     }
 }

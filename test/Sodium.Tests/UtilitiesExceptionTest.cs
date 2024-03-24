@@ -1,7 +1,5 @@
 using System;
-
 using NUnit.Framework;
-
 using Sodium;
 
 namespace Tests
@@ -15,14 +13,14 @@ namespace Tests
         [Test]
         public void BinaryToBase64NullTest()
         {
-            Assert.That(() => Utilities.BinaryToBase64(null),
+            Assert.That(() => Utilities.BinaryToBase64(null!),
               Throws.Exception.TypeOf<ArgumentNullException>());
         }
 
         [Test]
         public void Base64ToBinaryNullTest()
         {
-            Assert.That(() => Utilities.Base64ToBinary(null, " "),
+            Assert.That(() => Utilities.Base64ToBinary(null!, " "),
               Throws.Exception.TypeOf<ArgumentNullException>());
         }
     }

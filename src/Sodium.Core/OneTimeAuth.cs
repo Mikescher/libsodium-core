@@ -1,14 +1,14 @@
-﻿using System.Text;
-
+using System.Text;
 using Sodium.Exceptions;
+using static Interop.Libsodium;
 
 namespace Sodium
 {
     /// <summary>One Time Message Authentication</summary>
     public static class OneTimeAuth
     {
-        private const int KEY_BYTES = 32;
-        private const int BYTES = 16;
+        private const int KEY_BYTES = crypto_onetimeauth_poly1305_KEYBYTES;
+        private const int BYTES = crypto_onetimeauth_poly1305_BYTES;
 
         /// <summary>Generates a random 32 byte key.</summary>
         /// <returns>Returns a byte array with 32 random bytes</returns>
@@ -34,13 +34,13 @@ namespace Sodium
         /// <exception cref="KeyOutOfRangeException"></exception>
         public static byte[] Sign(byte[] message, byte[] key)
         {
-            //validate the length of the key
             if (key == null || key.Length != KEY_BYTES)
-                throw new KeyOutOfRangeException("key", (key == null) ? 0 : key.Length,
-                  string.Format("key must be {0} bytes in length.", KEY_BYTES));
+                throw new KeyOutOfRangeException(nameof(key), key?.Length ?? 0, $"key must be {KEY_BYTES} bytes in length.");
 
             var buffer = new byte[BYTES];
-            SodiumLibrary.crypto_onetimeauth(buffer, message, message.Length, key);
+
+            SodiumCore.Initialize();
+            crypto_onetimeauth_poly1305(buffer, message, (ulong)message.Length, key);
 
             return buffer;
         }
@@ -66,17 +66,13 @@ namespace Sodium
         /// <exception cref="SignatureOutOfRangeException"></exception>
         public static bool Verify(byte[] message, byte[] signature, byte[] key)
         {
-            //validate the length of the key
             if (key == null || key.Length != KEY_BYTES)
-                throw new KeyOutOfRangeException("key", (key == null) ? 0 : key.Length,
-                  string.Format("key must be {0} bytes in length.", KEY_BYTES));
-
-            //validate the length of the signature
+                throw new KeyOutOfRangeException(nameof(key), key?.Length ?? 0, $"key must be {KEY_BYTES} bytes in length.");
             if (signature == null || signature.Length != BYTES)
-                throw new SignatureOutOfRangeException("signature", (signature == null) ? 0 : signature.Length,
-                  string.Format("signature must be {0} bytes in length.", BYTES));
+                throw new SignatureOutOfRangeException(nameof(signature), signature?.Length ?? 0, $"signature must be {BYTES} bytes in length.");
 
-            var ret = SodiumLibrary.crypto_onetimeauth_verify(signature, message, message.Length, key);
+            SodiumCore.Initialize();
+            var ret = crypto_onetimeauth_poly1305_verify(signature, message, (ulong)message.Length, key);
 
             return ret == 0;
         }

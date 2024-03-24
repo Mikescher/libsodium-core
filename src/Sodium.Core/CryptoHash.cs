@@ -1,13 +1,13 @@
-﻿using System.Text;
+using System.Text;
+using static Interop.Libsodium;
 
 namespace Sodium
 {
     /// <summary>Provides hashing via selected primitive.</summary>
-    public class CryptoHash
+    public static class CryptoHash
     {
-        //pulled from various #define statements; may break with new versions
-        private const int SHA512_BYTES = 64;
-        private const int SHA256_BYTES = 32;
+        private const int SHA512_BYTES = crypto_hash_sha512_BYTES;
+        private const int SHA256_BYTES = crypto_hash_sha256_BYTES;
 
         /// <summary>Hashes a string using the default algorithm (This is what you want to use)</summary>
         /// <param name="message">The message.</param>
@@ -23,7 +23,9 @@ namespace Sodium
         public static byte[] Hash(byte[] message)
         {
             var buffer = new byte[SHA512_BYTES];
-            SodiumLibrary.crypto_hash(buffer, message, message.Length);
+
+            SodiumCore.Initialize();
+            crypto_hash_sha512(buffer, message, (ulong)message.Length);
 
             return buffer;
         }
@@ -42,7 +44,9 @@ namespace Sodium
         public static byte[] Sha512(byte[] message)
         {
             var buffer = new byte[SHA512_BYTES];
-            SodiumLibrary.crypto_hash_sha512(buffer, message, message.Length);
+
+            SodiumCore.Initialize();
+            crypto_hash_sha512(buffer, message, (ulong)message.Length);
 
             return buffer;
         }
@@ -61,7 +65,9 @@ namespace Sodium
         public static byte[] Sha256(byte[] message)
         {
             var buffer = new byte[SHA256_BYTES];
-            SodiumLibrary.crypto_hash_sha256(buffer, message, message.Length);
+
+            SodiumCore.Initialize();
+            crypto_hash_sha256(buffer, message, (ulong)message.Length);
 
             return buffer;
         }

@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 using System.Text;
-
 using Sodium.Exceptions;
+using static Interop.Libsodium;
 
 namespace Sodium
 {
     /// <summary>Create and Open Secret Boxes.</summary>
     public static class SecretBox
     {
-        private const int KEY_BYTES = 32;
-        private const int NONCE_BYTES = 24;
-        private const int MAC_BYTES = 16;
+        private const int KEY_BYTES = crypto_secretbox_xsalsa20poly1305_KEYBYTES;
+        private const int NONCE_BYTES = crypto_secretbox_xsalsa20poly1305_NONCEBYTES;
+        private const int MAC_BYTES = crypto_secretbox_xsalsa20poly1305_MACBYTES;
 
         /// <summary>Generates a random 32 byte key.</summary>
         /// <returns>Returns a byte array with 32 random bytes</returns>
@@ -50,18 +50,15 @@ namespace Sodium
         /// <exception cref="CryptographicException"></exception>
         public static byte[] Create(byte[] message, byte[] nonce, byte[] key)
         {
-            //validate the length of the key
             if (key == null || key.Length != KEY_BYTES)
-                throw new KeyOutOfRangeException("key", (key == null) ? 0 : key.Length,
-                  string.Format("key must be {0} bytes in length.", KEY_BYTES));
-
-            //validate the length of the nonce
+                throw new KeyOutOfRangeException(nameof(key), key?.Length ?? 0, $"key must be {KEY_BYTES} bytes in length.");
             if (nonce == null || nonce.Length != NONCE_BYTES)
-                throw new NonceOutOfRangeException("nonce", (nonce == null) ? 0 : nonce.Length,
-                  string.Format("nonce must be {0} bytes in length.", NONCE_BYTES));
+                throw new NonceOutOfRangeException(nameof(nonce), nonce?.Length ?? 0, $"nonce must be {NONCE_BYTES} bytes in length.");
 
-            var buffer = new byte[MAC_BYTES + message.Length];
-            var ret = SodiumLibrary.crypto_secretbox_easy(buffer, message, message.Length, nonce, key);
+            var buffer = new byte[message.Length + MAC_BYTES];
+
+            SodiumCore.Initialize();
+            var ret = crypto_secretbox_easy(buffer, message, (ulong)message.Length, nonce, key);
 
             if (ret != 0)
                 throw new CryptographicException("Failed to create SecretBox");
@@ -92,19 +89,16 @@ namespace Sodium
         /// <exception cref="CryptographicException"></exception>
         public static DetachedBox CreateDetached(byte[] message, byte[] nonce, byte[] key)
         {
-            //validate the length of the key
             if (key == null || key.Length != KEY_BYTES)
-                throw new KeyOutOfRangeException("key", (key == null) ? 0 : key.Length,
-                  string.Format("key must be {0} bytes in length.", KEY_BYTES));
-
-            //validate the length of the nonce
+                throw new KeyOutOfRangeException(nameof(key), key?.Length ?? 0, $"key must be {KEY_BYTES} bytes in length.");
             if (nonce == null || nonce.Length != NONCE_BYTES)
-                throw new NonceOutOfRangeException("nonce", (nonce == null) ? 0 : nonce.Length,
-                  string.Format("nonce must be {0} bytes in length.", NONCE_BYTES));
+                throw new NonceOutOfRangeException(nameof(nonce), nonce?.Length ?? 0, $"nonce must be {NONCE_BYTES} bytes in length.");
 
             var cipher = new byte[message.Length];
             var mac = new byte[MAC_BYTES];
-            var ret = SodiumLibrary.crypto_secretbox_detached(cipher, mac, message, message.Length, nonce, key);
+
+            SodiumCore.Initialize();
+            var ret = crypto_secretbox_detached(cipher, mac, message, (ulong)message.Length, nonce, key);
 
             if (ret != 0)
                 throw new CryptographicException("Failed to create detached SecretBox");
@@ -135,15 +129,13 @@ namespace Sodium
         /// <exception cref="CryptographicException"></exception>
         public static byte[] Open(byte[] cipherText, byte[] nonce, byte[] key)
         {
-            //validate the length of the key
             if (key == null || key.Length != KEY_BYTES)
-                throw new KeyOutOfRangeException("key", (key == null) ? 0 : key.Length,
-                  string.Format("key must be {0} bytes in length.", KEY_BYTES));
-
-            //validate the length of the nonce
+                throw new KeyOutOfRangeException(nameof(key), key?.Length ?? 0, $"key must be {KEY_BYTES} bytes in length.");
             if (nonce == null || nonce.Length != NONCE_BYTES)
-                throw new NonceOutOfRangeException("nonce", (nonce == null) ? 0 : nonce.Length,
-                  string.Format("nonce must be {0} bytes in length.", NONCE_BYTES));
+                throw new NonceOutOfRangeException(nameof(nonce), nonce?.Length ?? 0, $"nonce must be {NONCE_BYTES} bytes in length.");
+
+            if (cipherText.Length < MAC_BYTES)
+                throw new CryptographicException("Failed to open SecretBox");
 
             //check to see if there are MAC_BYTES of leading nulls, if so, trim.
             //this is required due to an error in older versions.
@@ -171,7 +163,9 @@ namespace Sodium
             }
 
             var buffer = new byte[cipherText.Length - MAC_BYTES];
-            var ret = SodiumLibrary.crypto_secretbox_open_easy(buffer, cipherText, cipherText.Length, nonce, key);
+
+            SodiumCore.Initialize();
+            var ret = crypto_secretbox_open_easy(buffer, cipherText, (ulong)cipherText.Length, nonce, key);
 
             if (ret != 0)
                 throw new CryptographicException("Failed to open SecretBox");
@@ -220,23 +214,17 @@ namespace Sodium
         /// <exception cref="CryptographicException"></exception>
         public static byte[] OpenDetached(byte[] cipherText, byte[] mac, byte[] nonce, byte[] key)
         {
-            //validate the length of the key
             if (key == null || key.Length != KEY_BYTES)
-                throw new KeyOutOfRangeException("key", (key == null) ? 0 : key.Length,
-                  string.Format("key must be {0} bytes in length.", KEY_BYTES));
-
-            //validate the length of the nonce
+                throw new KeyOutOfRangeException(nameof(key), key?.Length ?? 0, $"key must be {KEY_BYTES} bytes in length.");
             if (nonce == null || nonce.Length != NONCE_BYTES)
-                throw new NonceOutOfRangeException("nonce", (nonce == null) ? 0 : nonce.Length,
-                  string.Format("nonce must be {0} bytes in length.", NONCE_BYTES));
-
-            //validate the length of the mac
+                throw new NonceOutOfRangeException(nameof(nonce), nonce?.Length ?? 0, $"nonce must be {NONCE_BYTES} bytes in length.");
             if (mac == null || mac.Length != MAC_BYTES)
-                throw new MacOutOfRangeException("mac", (mac == null) ? 0 : mac.Length,
-                  string.Format("mac must be {0} bytes in length.", MAC_BYTES));
+                throw new MacOutOfRangeException(nameof(mac), mac?.Length ?? 0, $"mac must be {MAC_BYTES} bytes in length.");
 
             var buffer = new byte[cipherText.Length];
-            var ret = SodiumLibrary.crypto_secretbox_open_detached(buffer, cipherText, mac, cipherText.Length, nonce, key);
+
+            SodiumCore.Initialize();
+            var ret = crypto_secretbox_open_detached(buffer, cipherText, mac, (ulong)cipherText.Length, nonce, key);
 
             if (ret != 0)
                 throw new CryptographicException("Failed to open detached SecretBox");

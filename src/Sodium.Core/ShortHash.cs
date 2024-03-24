@@ -1,6 +1,6 @@
-﻿using System.Text;
-
+using System.Text;
 using Sodium.Exceptions;
+using static Interop.Libsodium;
 
 namespace Sodium
 {
@@ -8,8 +8,8 @@ namespace Sodium
     public static class ShortHash
     {
         //this was pulled from the headers; should be more dynamic
-        private const int BYTES = 8;
-        private const int KEY_BYTES = 16;
+        private const int BYTES = crypto_shorthash_siphash24_BYTES;
+        private const int KEY_BYTES = crypto_shorthash_siphash24_KEYBYTES;
 
         /// <summary>Generates a random 16 byte key.</summary>
         /// <returns>Returns a byte array with 16 random bytes</returns>
@@ -45,13 +45,13 @@ namespace Sodium
         /// <exception cref="KeyOutOfRangeException"></exception>
         public static byte[] Hash(byte[] message, byte[] key)
         {
-            //validate the length of the key
             if (key == null || key.Length != KEY_BYTES)
-                throw new KeyOutOfRangeException("key", (key == null) ? 0 : key.Length,
-                  string.Format("key must be {0} bytes in length.", KEY_BYTES));
+                throw new KeyOutOfRangeException(nameof(key), key?.Length ?? 0, $"key must be {KEY_BYTES} bytes in length.");
 
             var buffer = new byte[BYTES];
-            SodiumLibrary.crypto_shorthash(buffer, message, message.Length, key);
+
+            SodiumCore.Initialize();
+            crypto_shorthash_siphash24(buffer, message, (ulong)message.Length, key);
 
             return buffer;
         }

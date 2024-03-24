@@ -1,7 +1,5 @@
-﻿using System;
-
+using System;
 using NUnit.Framework;
-
 using Sodium;
 
 namespace Tests
@@ -34,7 +32,7 @@ namespace Tests
         0x86, 0xd0, 0x99, 0x74, 0x84, 0x0b, 0xde, 0xd2, 0xa5, 0xca
             };
 
-            if (SecretAeadAes.IsAvailable())
+            if (SecretAeadAes.IsAvailable)
             {
                 var encrypted = SecretAeadAes.Encrypt(m, nonce, key, ad);
                 var decrypted = SecretAeadAes.Decrypt(encrypted, nonce, key, ad);
@@ -66,7 +64,7 @@ namespace Tests
         0x86, 0xd0, 0x99, 0x74, 0x84, 0x0b, 0xde, 0xd2, 0xa5, 0xca
             };
 
-            if (SecretAeadAes.IsAvailable())
+            if (SecretAeadAes.IsAvailable)
             {
                 var encrypted = SecretAeadAes.Encrypt(m, nonce, key);
                 var decrypted = SecretAeadAes.Decrypt(encrypted, nonce, key);

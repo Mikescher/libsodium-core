@@ -1,25 +1,23 @@
-﻿using System.Runtime.InteropServices;
+using System;
+using System.Runtime.InteropServices;
+using static Interop.Libsodium;
+
 namespace Sodium
 {
     /// <summary>
     /// libsodium core information.
     /// </summary>
-    public static class SodiumCore
+    public static partial class SodiumCore
     {
-        private static bool _isInit;
-
-        static SodiumCore()
-        {
-            Init();
-        }
-
         /// <summary>Gets random bytes</summary>
         /// <param name="count">The count of bytes to return.</param>
         /// <returns>An array of random bytes.</returns>
         public static byte[] GetRandomBytes(int count)
         {
             var buffer = new byte[count];
-            SodiumLibrary.randombytes_buf(buffer, count);
+
+            SodiumCore.Initialize();
+            randombytes_buf(buffer, (nuint)buffer.Length);
 
             return buffer;
         }
@@ -31,9 +29,13 @@ namespace Sodium
         /// <returns>An unpredictable value between 0 and upperBound (excluded).</returns>
         public static int GetRandomNumber(int upperBound)
         {
-            var randomNumber = SodiumLibrary.randombytes_uniform(upperBound);
+            if (upperBound < 0)
+                throw new ArgumentOutOfRangeException(nameof(upperBound), "upperBound cannot be negative");
 
-            return randomNumber;
+            SodiumCore.Initialize();
+            var randomNumber = randombytes_uniform((uint)upperBound);
+
+            return (int)randomNumber;
         }
 
         /// <summary>
@@ -42,22 +44,16 @@ namespace Sodium
         /// <returns>
         /// The sodium version string.
         /// </returns>
-        public static string SodiumVersionString()
+        public static string? SodiumVersionString()
         {
-            var ptr = SodiumLibrary.sodium_version_string();
-
-            return Marshal.PtrToStringAnsi(ptr);
+            return Marshal.PtrToStringAnsi(sodium_version_string());
         }
 
         /// <summary>Initialize libsodium.</summary>
         /// <remarks>This only needs to be done once, so this prevents repeated calls.</remarks>
         public static void Init()
         {
-            if (!_isInit)
-            {
-                SodiumLibrary.sodium_init();
-                _isInit = true;
-            }
+            SodiumCore.Initialize();
         }
     }
 }
